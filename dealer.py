@@ -13,8 +13,11 @@ import smokers_pb2_grpc
 # -----------------
 # Konfiguration
 # -----------------
-TABLE_IP = "localhost:50051"
+#TABLE_IP = "localhost:50051"
+#DEALER_PORT = 50052
+TABLE_IP = "100.64.91.158:50051"
 DEALER_PORT = 50052
+
 
 INGREDIENTS = [
     smokers_pb2.Ingredient.PAPER,
@@ -91,4 +94,22 @@ def serve():
 
 
 if __name__ == "__main__":
-    serve()
+    # Starte den Server in einem Thread
+    import threading
+    server_thread = threading.Thread(target=serve, daemon=False)
+    server_thread.start()
+    
+    # Warte kurz bis Server bereit ist
+    time.sleep(2)
+    
+    # Starte erste Runde
+    print("Starte erste Runde automatisch...")
+    table_channel = grpc.insecure_channel(TABLE_IP)
+    table_stub = smokers_pb2_grpc.TableServiceStub(table_channel)
+    
+    # Verbinde zum eigenen Dealer-Service
+    dealer_channel = grpc.insecure_channel(f"localhost:{DEALER_PORT}")
+    dealer_stub = smokers_pb2_grpc.DealerServiceStub(dealer_channel)
+    dealer_stub.ContinueRound(smokers_pb2.ContinueRequest())
+    
+    server_thread.join()
