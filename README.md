@@ -6,6 +6,8 @@ ich würde einfach auf dem hauptlaptop/pc den table und dealer seperat starten ,
 1. table starten
 2. smokers starten
 3. erst dann den dealer starten
+
+#bla bla
 Pc:
 PC - Terminal 1 (Table)
 start cmd /k python table.py
