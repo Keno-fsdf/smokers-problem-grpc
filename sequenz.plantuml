@@ -1,0 +1,60 @@
+@startuml smokersProblem
+actor Dealer
+participant Table <<gRPC Service>>
+participant SmokerPaper <<gRPC Service>>
+participant SmokerMatch <<gRPC Service>>
+participant SmokerTobacco <<gRPC Service>>
+
+== Dealer puts two random ingredients ==
+Dealer -> Dealer: start_round()
+activate Dealer
+loop 2 times
+    Dealer -> Table: putIngredient(i) <<gRPC>>
+end
+deactivate Dealer
+
+
+Table -> Table: checkIngredient()
+
+alt Smoker with missing ingredient available
+Table -> SmokerPaper: notifyIfMissing() <<gRPC>>
+else
+Table -> SmokerMatch: notifyIfMissing() <<gRPC>>
+else
+Table -> SmokerTobacco: notifyIfMissing() <<gRPC>>
+end
+
+== Smoker takes ingredients and smokes ==
+
+group The correct smoker reacts
+alt SmokerPaper has missing ingredient
+SmokerPaper -> Table: takeIngredient(i) <<gRPC>>
+SmokerPaper -> Table: takeIngredient(i) <<gRPC>>
+activate SmokerPaper
+SmokerPaper -> SmokerPaper: makeCigarette()
+SmokerPaper -> SmokerPaper: smoke()
+deactivate SmokerPaper
+SmokerPaper -> Dealer: continue() <<gRPC>>
+else SmokerMatch has missing ingredient
+SmokerMatch -> Table: takeIngredient(i) <<gRPC>>
+SmokerMatch -> Table: takeIngredient(i) <<gRPC>>
+activate SmokerMatch
+SmokerMatch -> SmokerMatch: makeCigarette()
+SmokerMatch -> SmokerMatch: smoke()
+deactivate SmokerMatch
+SmokerMatch -> Dealer: continue() <<gRPC>>
+else SmokerTobacco has missing ingredient
+SmokerTobacco -> Table: takeIngredient(i) <<gRPC>>
+SmokerTobacco -> Table: takeIngredient(i) <<gRPC>>
+activate SmokerTobacco
+SmokerTobacco -> SmokerTobacco: makeCigarette()
+SmokerTobacco -> SmokerTobacco: smoke()
+deactivate SmokerTobacco
+SmokerTobacco -> Dealer: continue() <<gRPC>>
+end
+end
+
+== Cycle repeats ==
+Dealer -> Dealer: repeat
+
+@enduml 
