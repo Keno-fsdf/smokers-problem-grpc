@@ -32,8 +32,8 @@ ingredient_id = int(sys.argv[1])
 ingredient_enum = INGREDIENT_MAP[ingredient_id]
 ingredient_name = INGREDIENT_NAMES[ingredient_enum]
 
-TABLE_ADDR = "localhost:50051"
-DEALER_ADDR = "localhost:50052"
+TABLE_ADDR = "10.78.145.60:50051"      # PC IP
+DEALER_ADDR = "10.78.145.60:50052"     # PC IP
 
 
 class Smoker(smokers_pb2_grpc.SmokerServiceServicer):
@@ -57,14 +57,13 @@ class Smoker(smokers_pb2_grpc.SmokerServiceServicer):
         port = 6000 + self.ingredient_id
         request = smokers_pb2.RegisterRequest(
             ingredient=self.ingredient_enum,
-            address=f"localhost:{port}"
+            address=f"10.78.145.183:{port}"  # Laptop IP!
         )
         try:
             self.table_stub.RegisterSmoker(request)
             print(f"Smoker {ingredient_name}: Registrierung erfolgreich")
         except Exception as e:
             print(f"Smoker {ingredient_name}: Registrierung fehlgeschlagen: {e}")
-
     def Notify(self, request, context):
         print(f"Smoker {ingredient_name}: Ich wurde benachrichtigt – ich bin dran!")
 
