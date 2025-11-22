@@ -1,0 +1,56 @@
+@startuml pollingVsProblem
+actor Dealer
+participant Table
+participant SmokerPaper
+participant SmokerTobacco
+participant SmokerMatch
+
+== Initial State ==
+Dealer -> Table: PutIngredient(PAPER)
+Dealer -> Table: PutIngredient(MATCH)
+
+== Continuous Polling Loop ==
+loop Every 10ms
+
+    
+    note over SmokerPaper, SmokerMatch: All Smokers Polling Table
+    SmokerPaper -> Table: CheckIngredients()
+    Table --> SmokerPaper: No
+    
+    SmokerTobacco -> Table: CheckIngredients()
+    Table --> SmokerTobacco: No
+    
+    SmokerMatch -> Table: CheckIngredients()
+    Table --> SmokerMatch: Yes! Tobacco + Paper
+
+end
+
+== SmokerMatch Finally Reacts ==
+SmokerMatch -> Table: TakeIngredient(TOBACCO)
+SmokerMatch -> Table: TakeIngredient(PAPER)
+activate SmokerMatch
+SmokerMatch -> SmokerMatch: makeCigarette()
+SmokerMatch -> SmokerMatch: smoke()
+deactivate SmokerMatch
+
+== Dealer Polling ALL Smokers ==
+loop Every 10ms
+    Dealer -> SmokerPaper: AreyouDone()
+    SmokerPaper --> Dealer: No, still smoking
+    
+    Dealer -> SmokerTobacco: AreyouDone()
+    SmokerTobacco --> Dealer:   No
+    
+    Dealer -> SmokerMatch: AreyouDone()
+    SmokerMatch --> Dealer: Yes!
+end
+
+note right of Dealer
+  MASSIVE INEFFICIENCY:
+  • Smokers poll table (3x)
+  • Dealer polls all smokers (3x)
+  • CPU overhead
+  • Network waste
+end note
+
+@enduml

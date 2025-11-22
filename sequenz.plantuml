@@ -6,12 +6,11 @@ participant SmokerMatch <<gRPC Service>>
 participant SmokerTobacco <<gRPC Service>>
 
 == Dealer puts two random ingredients ==
-Dealer -> Dealer: start_round()
-activate Dealer
+
 loop 2 times
     Dealer -> Table: putIngredient(i) <<gRPC>>
 end
-deactivate Dealer
+
 
 
 Table -> Table: checkIngredient()
@@ -55,6 +54,6 @@ end
 end
 
 == Cycle repeats ==
-Dealer -> Dealer: repeat
+
 
 @enduml 
