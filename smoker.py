@@ -50,7 +50,7 @@ class Smoker(smokers_pb2_grpc.SmokerServiceServicer):
         self.dealer_channel = grpc.insecure_channel(DEALER_ADDR)
         self.dealer_stub = smokers_pb2_grpc.DealerServiceStub(self.dealer_channel)
         
-        # Registriere dich beim Table
+        # Register at table
         self._register_at_table()
 
     def _register_at_table(self):
@@ -61,36 +61,37 @@ class Smoker(smokers_pb2_grpc.SmokerServiceServicer):
         )
         try:
             self.table_stub.RegisterSmoker(request)
-            print(f"Smoker {ingredient_name}: Registrierung erfolgreich")
+            print(f"Smoker {ingredient_name}: Registration successful")
         except Exception as e:
-            print(f"Smoker {ingredient_name}: Registrierung fehlgeschlagen: {e}")
-    def Notify(self, request, context):
-        print(f"Smoker {ingredient_name}: Ich wurde benachrichtigt – ich bin dran!")
+            print(f"Smoker {ingredient_name}: Registration failed: {e}")
 
-        # Die zwei Zutaten nehmen die NICHT meine eigene sind
+    def Notify(self, request, context):
+        print(f"Smoker {ingredient_name}: I was notified – it's my turn!")
+
+        # Take the two ingredients that are NOT my own
         for ingredient in INGREDIENTS_LIST:
             if ingredient != self.ingredient_enum:
-                print(f"Smoker {ingredient_name}: nehme {INGREDIENT_NAMES[ingredient]} vom Tisch...")
+                print(f"Smoker {ingredient_name}: taking {INGREDIENT_NAMES[ingredient]} from table...")
                 self.table_stub.TakeIngredient(smokers_pb2.IngredientMessage(ingredient=ingredient))
 
-        # Zigarette bauen & rauchen
+        # Build & smoke cigarette
         self._make_cigarette()
         self._smoke()
 
-        print(f"Smoker {ingredient_name}: signalisiere Dealer, dass eine neue Runde starten kann...")
+        print(f"Smoker {ingredient_name}: signaling dealer that a new round can start...")
         print("------------------------------------------------------------------------------\n")
 
-        # Neue Runde starten
+        # Start new round
         self.dealer_stub.ContinueRound(smokers_pb2.ContinueRequest())
 
         return smokers_pb2.NotifyResponse()
 
     def _make_cigarette(self):
-        print(f"Smoker {ingredient_name}: baue Zigarette...")
+        print(f"Smoker {ingredient_name}: building cigarette...")
         time.sleep(1)
 
     def _smoke(self):
-        print(f"Smoker {ingredient_name}: rauche...")
+        print(f"Smoker {ingredient_name}: smoking...")
         time.sleep(2)
 
 
@@ -102,7 +103,7 @@ def serve():
     port = 6000 + ingredient_id
     server.add_insecure_port(f"[::]:{port}")
 
-    print(f"Smoker {ingredient_name} läuft auf Port {port}")
+    print(f"Smoker {ingredient_name} running on port {port}")
     server.start()
     server.wait_for_termination()
 
