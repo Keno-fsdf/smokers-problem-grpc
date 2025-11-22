@@ -1,6 +1,6 @@
 git clone -b <branch-name> --single-branch <repo-url>
 git clone -b table_dealer_pc1 --single-branch https://github.com/Keno-fsdf/smokers-problem-grpc
-
+# man muss dann immernoch: cd smokers-problem-grpc
 
 
 
