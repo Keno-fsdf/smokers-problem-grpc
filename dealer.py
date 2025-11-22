@@ -6,13 +6,7 @@ import threading
 import smokers_pb2
 import smokers_pb2_grpc
 
-#Event basiert ist so, dass am nafang einfach einmal startround aufgerufen wird
-#danach muss der smoker halt immer die start_round methode aufrufen von extern
-#das ist auch event basiert glaub ich
 
-# -----------------
-# Konfiguration
-# -----------------
 #TABLE_IP = "localhost:50051"
 #DEALER_PORT = 50052
 TABLE_IP = "100.64.91.158:50051"
@@ -31,7 +25,7 @@ INGREDIENT_NAMES = {
     smokers_pb2.Ingredient.MATCH: "MATCH"
 }
 
-#bis hierhin passt
+
 
 
 class Dealer(smokers_pb2_grpc.DealerServiceServicer):
@@ -40,43 +34,41 @@ class Dealer(smokers_pb2_grpc.DealerServiceServicer):
 
     def _put_ingredient(self, ingredient):
         """
-        Legt eine Zutat auf den Tisch. 
-        RPC-Aufruf zum Table-Node über gRPC.
+       Places an ingredient on the table.
+        RPC call to the Table node via gRPC.
         """
         request = smokers_pb2.IngredientMessage(ingredient=ingredient)
         response = self.table_stub.PutIngredient(request)
-        print(f"Dealer hat Zutat {INGREDIENT_NAMES[ingredient]} auf den Tisch gelegt.", flush=True)
+        print(f"Dealer placed ingredient {INGREDIENT_NAMES[ingredient]} on the table.", flush=True)
         return response
 
     def start_round(self):
         """
-        Startet eine Runde: zwei zufällige Zutaten auf den Tisch legen.
+        Starts a round: place two random ingredients on the table.
         """
-        print("Dealer: Starte neue Runde...", flush=True)
+        print("Dealer: Starting new round...", flush=True)
         chosen = random.sample(INGREDIENTS, 2)
-        print(f"Dealer: Wähle Zutaten: {INGREDIENT_NAMES[chosen[0]]} und {INGREDIENT_NAMES[chosen[1]]}", flush=True)
+        print(f"Dealer: Select ingredients: {INGREDIENT_NAMES[chosen[0]]} and {INGREDIENT_NAMES[chosen[1]]}", flush=True)
         for ing in chosen:
             try:
-                print(f"Dealer: Versuche Zutat {INGREDIENT_NAMES[ing]} zu legen...", flush=True)
+                print(f"Dealer: Trying to place ingredient {INGREDIENT_NAMES[ing]}", flush=True)
                 self._put_ingredient(ing)
-                print(f"Dealer: Zutat {INGREDIENT_NAMES[ing]} erfolgreich gelegt.", flush=True)
+                print(f"Dealer: Ingredient {INGREDIENT_NAMES[ing]} placed successfully", flush=True)
             except Exception as e:
-                print(f"Dealer: FEHLER beim Legen von {INGREDIENT_NAMES[ing]}: {e}", flush=True)
+                print(f"Dealer: ERROR while placing {INGREDIENT_NAMES[ing]}: {e}", flush=True)
 
 
     def ContinueRound(self, request, context):
         print("\n----------------------------------------------")
-        print("Dealer: ContinueRound erhalten.", flush=True)
+        print("Dealer: ContinueRound received.", flush=True)
         self.start_round()
         return smokers_pb2.ContinueResponse()
 
 
 
-# -----------------
-# Server starten
-# -----------------
+
 def serve():
-    # Verbindung zum Table
+    
     table_channel = grpc.insecure_channel(TABLE_IP)
     table_stub = smokers_pb2_grpc.TableServiceStub(table_channel)
 
@@ -86,7 +78,7 @@ def serve():
 
     server.add_insecure_port(f'[::]:{DEALER_PORT}')
     server.start()
-    print(f"Dealer läuft auf Port {DEALER_PORT}")
+    print(f"Dealer is running on port {DEALER_PORT}")
 
 
 
@@ -94,20 +86,20 @@ def serve():
 
 
 if __name__ == "__main__":
-    # Starte den Server in einem Thread
+   
     import threading
     server_thread = threading.Thread(target=serve, daemon=False)
     server_thread.start()
     
-    # Warte kurz bis Server bereit ist
+   
     time.sleep(2)
     
-    # Starte erste Runde
-    print("Starte erste Runde automatisch...")
+
+    print("Starting first round automatically...")
     table_channel = grpc.insecure_channel(TABLE_IP)
     table_stub = smokers_pb2_grpc.TableServiceStub(table_channel)
     
-    # Verbinde zum eigenen Dealer-Service
+
     dealer_channel = grpc.insecure_channel(f"localhost:{DEALER_PORT}")
     dealer_stub = smokers_pb2_grpc.DealerServiceStub(dealer_channel)
     dealer_stub.ContinueRound(smokers_pb2.ContinueRequest())
